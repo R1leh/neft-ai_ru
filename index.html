@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Применение искусственного интеллекта в решении вопросов охраны труда на производстве</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==================================================================
+       ЦВЕТОВЫЕ ТЕМЫ
+       ================================================================== */
+    :root {
+      /* Тёмная красная тема (по умолчанию) */
+      --bg-start: #0a1b3d;
+      --bg-end: #0f2d5b;
+      --card: #112549;
+      --accent: #e63946;
+      --accent-light: rgba(230, 57, 70, 0.15);
+      --text: #f1faee;
+      --text-soft: #a8dadc;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      
+      /* Адаптивные размеры шрифтов */
+      --font-size-base: clamp(18px, 4vw, 28px);
+      --font-size-h1: clamp(32px, 6vw, 52px);
+      --font-size-tag: clamp(20px, 4vw, 26px);
+      --font-size-ai: clamp(22px, 4.5vw, 36px);
+      --font-size-goal: clamp(20px, 3.5vw, 26px);
+      --font-size-small: clamp(16px, 3vw, 20px);
+    }
+
+    .theme-light {
+      --bg-start: #f0f9ff;
+      --bg-end: #e0f2fe;
+      --card: #ffffff;
+      --accent: #0ea5e9;
+      --accent-light: rgba(14, 165, 233, 0.12);
+      --text: #0f172a;
+      --text-soft: #475569;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-cyber {
+      --bg-start: #0d001a;
+      --bg-end: #1a0033;
+      --card: #1a0b2e;
+      --accent: #c84bff;
+      --accent-light: rgba(200, 75, 255, 0.18);
+      --text: #e8d5ff;
+      --text-soft: #d8b4ff;
+      --shadow: 0 20px 60px rgba(150, 0, 255, 0.3);
+    }
+
+    /* ==================================================================
+       БАЗОВЫЕ СТИЛИ
+       ================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: var(--font-size-base);
+      line-height: 1.7;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      scroll-behavior: smooth;
+      transition: background 0.6s ease;
+    }
+
+    .progressbar {
+      /* Полоса прогресса прокрутки */
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 6px;
+      background: var(--accent);
+      width: 0%;
+      z-index: 1000;
+      box-shadow: 0 0 20px var(--accent);
+      transition: width .3s;
+    }
+
+    header {
+      /* Фиксированная шапка */
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 900;
+      background: rgba(10, 27, 61, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 4px solid var(--accent);
+      padding: clamp(12px, 2vw, 16px) 0;
+      transition: background .4s, border-color .4s;
+    }
+
+    .theme-light header {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .theme-cyber header {
+      background: rgba(26, 11, 46, 0.95);
+    }
+
+    .header-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 40px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: clamp(32px, 6vw, 42px);
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    h1 {
+      /* Главный заголовок */
+      font-size: var(--font-size-h1);
+      font-weight: 800;
+      text-align: center;
+      background: linear-gradient(90deg, var(--text), var(--accent));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: clamp(80px, 15vw, 120px) auto clamp(40px, 8vw, 60px);
+      max-width: min(1200px, 92vw);
+      padding: 0 clamp(16px, 3vw, 20px);
+      line-height: 1.3;
+    }
+
+    .panel {
+      max-width: 92vw;          
+      width: 92vw;
+      padding: clamp(40px, 6vw, 60px) clamp(20px, 5vw, 5vw);
+      margin: clamp(60px, 10vw, 120px) auto;
+      background: var(--card);
+      border-left: 8px solid var(--accent);
+      border-radius: 0 20px 20px 0;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(70px);
+      transition: opacity 1s ease, transform 1s ease, background .5s, border-color .5s;
+    }
+
+    .panel.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .tag {
+      /* Теги-заголовки секций */
+      display: inline-block;
+      padding: clamp(10px, 2vw, 14px) clamp(20px, 3vw, 32px);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      font-size: var(--font-size-tag);
+      border-radius: 12px;
+      margin-bottom: clamp(20px, 3vw, 32px);
+    }
+
+    .ai-text {
+      font-size: var(--font-size-ai);
+      line-height: 1.6;
+      color: var(--text-soft);
+      margin-top: clamp(16px, 3vw, 20px);
+    }
+
+    .ai-text.instant {
+      opacity: 1 !important;
+    }
+
+    .ai-word {
+      opacity: 0;
+      display: inline-block;
+      margin-right: 6px;
+      transform: translateY(10px);
+      transition: all .4s ease;
+    }
+
+    .ai-word.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .media-container {
+      position: relative;
+      width: 100%;
+      margin: clamp(24px, 4vw, 40px) 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--accent-light);
+      border-radius: 16px;
+      min-height: 400px;
+      overflow: hidden;
+    }
+
+    /* Масштабирование для изображений */
+    img.photo {
+      width: 100%;
+      height: auto;
+      max-height: 70vh;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 4px solid var(--accent);
+      display: block;
+    }
+
+    /* Масштабирование для первого видео */
+    video.clip {
+      width: 100%;
+      height: auto;
+      max-height: 70vh;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 4px solid var(--accent);
+      display: block;
+      background: #000;
+    }
+
+    /* Увеличенное масштабирование для второго видео */
+    video.clip.large {
+      width: 100%;
+      height: auto;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 16px;
+      border: 4px solid var(--accent);
+      display: block;
+      background: #000;
+    }
+
+    .media-fallback {
+      width: 100%;
+      height: min(400px, 50vh);
+      background: var(--accent-light);
+      border: 2px dashed var(--accent);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .media-fallback svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 20px;
+      stroke: var(--accent);
+      stroke-width: 2;
+    }
+
+    .media-fallback p {
+      font-size: var(--font-size-small);
+      color: var(--text-soft);
+      margin-bottom: 10px;
+    }
+
+    .media-loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--accent-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid transparent;
+      border-top: 4px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .guard {
+      /* Сообщение до просмотра видео */
+      background: var(--accent-light);
+      padding: clamp(16px, 3vw, 24px);
+      border-radius: 16px;
+      font-size: var(--font-size-small);
+      color: var(--text);
+      margin: clamp(20px, 3vw, 32px) 0;
+      border: 1px solid var(--accent);
+    }
+
+    .goals {
+      display: grid;
+      gap: clamp(20px, 3vw, 28px);
+      margin-top: clamp(32px, 5vw, 48px);
+    }
+
+    .goal {
+      display: flex;
+      gap: clamp(16px, 2.5vw, 24px);
+      align-items: flex-start;
+      padding: clamp(20px, 3vw, 28px);
+      background: var(--accent-light);
+      border-radius: 16px;
+      font-size: var(--font-size-goal);
+      border: 2px dashed var(--accent);
+      line-height: 1.5;
+    }
+
+    .goal svg {
+      flex-shrink: 0;
+      width: clamp(28px, 4vw, 36px);
+      height: clamp(28px, 4vw, 36px);
+      margin-top: 4px;
+      stroke: var(--accent);
+      stroke-width: 3;
+    }
+
+    .to-top {
+      /* Кнопка «Наверх» */
+      position: fixed;
+      right: clamp(16px, 3vw, 32px);
+      bottom: clamp(16px, 3vw, 32px);
+      width: clamp(60px, 8vw, 76px);
+      height: clamp(60px, 8vw, 76px);
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: bold;
+      cursor: pointer;
+      opacity: 0;
+      transition: all .4s;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .5);
+      z-index: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .to-top.show {
+      opacity: 1;
+    }
+
+    /* Переключатель тем */
+    .theme-switcher {
+      display: flex;
+      gap: clamp(8px, 1.5vw, 12px);
+    }
+
+    .theme-btn {
+      width: clamp(28px, 4vw, 36px);
+      height: clamp(28px, 4vw, 36px);
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      opacity: .7;
+      transition: all .3s;
+    }
+
+    .theme-btn:hover {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+
+    .theme-btn.active {
+      opacity: 1;
+      transform: scale(1.25);
+      box-shadow: 0 0 20px currentColor;
+    }
+
+    #theme-dark {
+      background: #e63946;
+    }
+
+    #theme-light {
+      background: #0ea5e9;
+    }
+
+    #theme-cyber {
+      background: #c84bff;
+    }
+
+    /* Улучшения для очень маленьких экранов */
+    @media (max-width: 480px) {
+      .goal {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .goal svg {
+        align-self: center;
+      }
+      
+      .header-inner {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .media-container {
+        min-height: 300px;
+      }
+      
+      /* На мобильных уменьшаем масштаб второго видео */
+      video.clip.large {
+        max-height: 70vh;
+        object-fit: cover;
+      }
+    }
+
+    /* Улучшения для очень больших экранов */
+    @media (min-width: 1600px) {
+      body {
+        font-size: 28px;
+      }
+      
+      .panel {
+        max-width: 1400px;
+      }
+      
+      /* На больших экранах увеличиваем второе видео ещё больше */
+      video.clip.large {
+        max-height: 85vh;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="progressbar" id="progress"></div>
+
+  <header>
+    <div class="header-inner">
+      <div class="logo">ИИ</div>
+      <div class="theme-switcher">
+        <button id="theme-dark" class="theme-btn active" title="Тёмная" aria-label="Переключить на тёмную тему"></button>
+        <button id="theme-light" class="theme-btn" title="Светлая" aria-label="Переключить на светлую тему"></button>
+        <button id="theme-cyber" class="theme-btn" title="Кибер-панк" aria-label="Переключить на кибер-панк тему"></button>
+      </div>
+    </div>
+  </header>
+
+  <h1>Применение искусственного интеллекта в решении вопросов охраны труда на производстве</h1>
+
+  <main>
+  <!-- ====================== КОНТЕНТ ====================== -->
+
+  <section class="panel" data-type="text">
+    <div class="tag">Вступление</div>
+    <div class="ai-text instant"
+      data-text="Современные технологии развиваются стремительно быстро — быстрее, чем любые инновации в истории. И такие разработки, как искусственный интеллект (ИИ), машинное обучение (МО), «умные» средства индивидуальной защиты (СИЗ), устройства дополненной реальности, киберфизические производственные сети, экзоскелеты и другие носимые устройства создают в сфере охраны труда как новые возможности, так и новые вызовы. Мой проект — о том, как ИИ может повысить безопасность работников: контролировать наличие СИЗ и оценивать уровень безопасности действий на опасном производстве.">
+    </div>
+  </section>
+
+  <section class="panel" data-type="text" id="goals">
+    <div class="tag">Цели и задачи проекта</div>
+    <div class="ai-text"
+      data-text="Цель проекта — показать практическую пользу ИИ для повышения безопасности труда и снижение травматизма за счёт автоматического анализа нарушений и обратной связи в реальном времени.">
+    </div>
+    <div class="goals">
+      <div class="goal"><svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <div>Изучить задачи, непосредственно касающиеся охраны труда работников, которые возможно решить с помощью ИИ.
+        </div>
+      </div>
+      <div class="goal"><svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <div>Рассмотреть примеры использования компаниями ИИ в сфере охраны труда для повышения безопасности на рабочем
+          месте.</div>
+      </div>
+      <div class="goal"><svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <div>Визуально показать, как работает ИИ при нарушении условий охраны труда на опасном и вредном производстве.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" data-type="image">
+    <div class="media-container">
+      <div class="media-loading" id="loading-1">
+        <div class="spinner"></div>
+      </div>
+      <img class="photo" data-src="1.png" alt="Работник стоит в ковше погрузчика на высоте" loading="lazy">
+    </div>
+    <div class="tag">Нарушение №1</div>
+    <div class="ai-text"
+      data-text="На фотографии видно, как человек выполняет работу, стоя в поднятом ковше погрузчика. Это грубейшее нарушение правил охраны труда: ковш не предназначен для подъёма людей. Отсутствуют страховочные системы, поручни и устойчивое основание. Малейшее движение стрелы или потеря равновесия могут привести к падению с большой высоты и тяжёлым травмам. Согласно требованиям безопасности, работы на высоте должны выполняться только с использованием специальных подъёмников, площадок или строительных лесов с обязательным применением СИЗ.">
+    </div>
+  </section>
+
+  <section class="panel" data-type="image">
+    <div class="media-container">
+      <div class="media-loading" id="loading-2">
+        <div class="spinner"></div>
+      </div>
+      <img class="photo" data-src="2.png" alt="Рабочие выполняют резку металла без средств защиты" loading="lazy">
+    </div>
+    <div class="tag">Нарушение №2</div>
+    <div class="ai-text"
+      data-text="На изображении один рабочий выполняет резку металла болгаркой, а двое других стоят рядом. При этом никто из них не использует средства индивидуальной защиты — отсутствуют защитные очки, щитки, костюмы и перчатки. Искры и частицы металла разлетаются на большое расстояние, создавая угрозу ожогов и травм глаз. Кроме того, рабочие находятся слишком близко к источнику искр. Нарушены базовые требования безопасности при работе с электроинструментом: необходимы щитки, ограждение зоны резки и дистанция не менее полутора метров от наблюдающих.">
+    </div>
+  </section>
+
+  <section class="panel" data-type="image">
+    <div class="media-container">
+      <div class="media-loading" id="loading-3">
+        <div class="spinner"></div>
+      </div>
+      <img class="photo" data-src="3.png" alt="Использование пластиковой бутылки вместо защитной маски" loading="lazy">
+    </div>
+    <div class="tag">Нарушение №3</div>
+    <div class="ai-text"
+      data-text="На снимке видно, как работник использует обрезанную пластиковую бутылку вместо защитного щитка при шлифовке металлической детали. Это крайне опасная импровизация: пластик не способен выдерживать воздействие раскалённых искр, быстро плавится и не защищает лицо и глаза от механических частиц. Такое поведение свидетельствует о недостатке средств защиты и низком уровне культуры безопасности труда. Для подобных операций обязательно применение сертифицированного лицевого щитка, перчатки и спецодежды, а также организация рабочего места с экранами и вытяжкой.">
+    </div>
+  </section>
+
+  <section class="panel" data-type="video">
+    <div class="media-container">
+      <div class="media-loading" id="loading-video-1">
+        <div class="spinner"></div>
+      </div>
+      <video class="clip" controls preload="metadata" playsinline data-src="1.mp4">
+        Ваш браузер не поддерживает видео тег.
+      </video>
+    </div>
+    <div class="guard">Сначала досмотрите ролик до конца — затем появится описание по словам.</div>
+    <div class="tag">Видео — Падение с высоты</div>
+    <div class="ai-text gated"
+      data-text="Судя по названию и типовым рискам, ролик демонстрирует ситуацию работы на высоте без достаточных мер защиты: отсутствует страховочная привязь, анкерная линия или корректные ограждения. Частые причины — спешка, неудобные точки крепления, недооценка ветровой нагрузки, скользкая поверхность или перестановка лестницы без трёх точек опоры. Последствия — срыв, удар о конструкцию, травмы головы и позвоночника. Правильно организованные работы включают: систему удержания с сертифицированной привязью, проверенные точки анкерования, ограждения кромок, обучение и тренировки по работе на высоте, наряд-допуск, наблюдающего и план спасения. Любой выход к кромке без СИЗ недопустим.">
+    </div>
+  </section>
+
+  <section class="panel" data-type="video">
+    <div class="media-container">
+      <div class="media-loading" id="loading-video-2">
+        <div class="spinner"></div>
+      </div>
+      <video class="clip large" controls preload="metadata" playsinline data-src="2.mp4">
+        Ваш браузер не поддерживает видео тег.
+      </video>
+    </div>
+    <div class="guard">Сначала досмотрите ролик до конца — затем появится описание по словам.</div>
+    <div class="tag">Видео — Падение дерева</div>
+    <div class="ai-text gated"
+      data-text="По названию можно заключить, что видео показывает валку дерева с нарушениями: неверный направляющий подпил, неправильный обратный рез, отсутствие клиньев и расчистки направления падения. Часты ошибки — нет двух запасных путей отхода под 45°, поблизости находятся люди и техника, не учтён ветер, не применена оттяжка. Опасности: откол «бороды», «стул» (раскалывание ствола вверх), отскок и неконтролируемое направление падения. Безопасная валка требует квалифицированного вальщика, СИЗ (шлем с визором, защита слуха, штаны-чапсы, перчатки), расчистки зоны, разметки вектора падения, клиньев/лебёдки, чёткого радиообмена и запрета присутствия посторонних в опасной зоне.">
+    </div>
+  </section>
+
+  <section class="panel" data-type="image">
+    <div class="media-container">
+      <div class="media-loading" id="loading-4">
+        <div class="spinner"></div>
+      </div>
+      <img class="photo" data-src="4.jpg" alt="Датчик пульса под большим пальцем" loading="lazy">
+    </div>
+    <div class="tag">БиоМышь — контроль состояния пользователя</div>
+    <div class="ai-text"
+      data-text="БиоМышь Индивидуальная (КПФ-01c) — компьютерная мышь со встроенным инфракрасным датчиком пульса под большим пальцем, которая при сохранении функций обычной мыши контролирует текущее функциональное состояние человека. Использование привычного устройства экономит время на подготовку к измерениям и позволяет совмещать работу за ПК с мониторингом. Специализированное ПО в комплекте отображает фотоплетизмограмму в реальном времени, выделяет ритм сердечных сокращений и анализирует вариабельность. Ключевые возможности: экспресс-обследование менее чем за две минуты; хранение, выборка и обработка данных с представлением результатов и печатью отчёта; понятное заключение о состоянии и отслеживание динамики; поддержка нескольких пользователей на одном ПК с защитой личных данных; простая установка и использование. БиоМышь — компактное и доступное решение для экспресс-оценки адаптационных возможностей организма и раннего предупреждения неблагоприятных изменений, а также основа для телемедицинских сервисов и построения баз данных здоровья. Это первый шаг к «персональному доктору» на рабочем столе.">
+    </div>
+  </section>
+
+  <section class="panel" data-type="text">
+    <div class="tag">Заключение</div>
+    <div class="ai-text instant"
+      data-text="Исходя из всего выше сказанного, можем сделать вывод, что сегодня интеллектуальные системы выходят за рамки просто «умных» устройств. Они хранят и собирают большие данные, мгновенно их анализируют, самообучаются и адаптируются к новым условиям, а порой работают полностью автономно — без поддержки со стороны человека. Точность нейросетей растёт с огромной скоростью, постепенно вытесняя человеческий труд и привычные алгоритмы решения задач во многих областях. В моем проекте приведены примеры, когда ИИ анализирует моменты, связанные с несоблюдением техники безопасности на том или ином объекте (это и всем известные художественные фильмы, а также ситуации с производства). В ПРИЛОЖЕНИИ 1 представлен QR-код, перейдя по которому Вы можете попасть на мини-сайт моего проекта. Благодаря технологиям ИИ можно значительно сократить количество ошибок, которые допускает человек из-за усталости или невнимательности, можно автоматизировать многие задачи, повышая эффективность рабочего процесса, предоставлять сотрудникам обратную связь в режиме реального времени или вести активное — «умное» — наблюдение за рабочим процессом.">
+    </div>
+  </section>
+
+  </main>
+
+  <button class="to-top" id="toTop">↑</button>
+
+  <!-- ====================== СКРИПТЫ ====================== -->
+  <script>
+    (function () {
+      // 1) Theme persistence and buttons
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      if (savedTheme === 'light') document.documentElement.classList.add('theme-light');
+      if (savedTheme === 'cyber') document.documentElement.classList.add('theme-cyber');
+
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const theme = btn.id.replace('theme-', '');
+          document.documentElement.className = theme === 'light' ? 'theme-light' :
+            theme === 'cyber' ? 'theme-cyber' : '';
+          localStorage.setItem('theme', theme);
+        });
+        if (btn.id === `theme-${savedTheme}`) btn.classList.add('active');
+      });
+
+      // 2) Progress bar
+      const progressBar = document.getElementById('progress');
+      window.addEventListener('scroll', () => {
+        const winScroll = document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+        if (progressBar) progressBar.style.width = scrolled + '%';
+      });
+
+      // 3) Improved Panels observer - bidirectional animation
+      const panels = document.querySelectorAll('.panel');
+      const panelObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          } else {
+            entry.target.classList.remove('visible');
+          }
+        });
+      }, { 
+        threshold: 0.15,
+        rootMargin: '-50px 0px -100px 0px'
+      });
+      
+      panels.forEach(p => panelObserver.observe(p));
+
+      // 4) Typing animation (только для не-instant текстов)
+      const typingDelay = 180;
+      function typeWriter(container) {
+        if (container.dataset.typed) return;
+        container.dataset.typed = '1';
+        const words = (container.dataset.text || '').trim().split(/\s+/);
+        container.innerHTML = '';
+        words.forEach((word, i) => {
+          const span = document.createElement('span');
+          span.className = 'ai-word';
+          span.textContent = word + ' ';
+          container.appendChild(span);
+          setTimeout(() => span.classList.add('visible'), i * typingDelay);
+        });
+      }
+
+      // Instant тексты - сразу показываем
+      document.querySelectorAll('.ai-text.instant').forEach(container => {
+        container.innerHTML = container.dataset.text;
+        container.style.opacity = '1';
+      });
+
+      // Improved Text observer for non-gated texts
+      const textObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const txt = entry.target.querySelector('.ai-text:not(.gated):not(.instant)');
+            if (txt && !txt.dataset.typed) {
+              setTimeout(() => typeWriter(txt), 300);
+            }
+          }
+        });
+      }, { 
+        threshold: 0.3,
+        rootMargin: '0px 0px -100px 0px'
+      });
+      
+      panels.forEach(p => {
+        const textElement = p.querySelector('.ai-text:not(.gated):not(.instant)');
+        if (textElement) {
+          textObserver.observe(p);
+        }
+      });
+
+      // 5) Video gates: reveal text after watch
+      document.querySelectorAll('video.clip').forEach(video => {
+        const panel = video.closest('.panel');
+        const gatedText = panel && panel.querySelector('.ai-text.gated');
+        const guard = panel && panel.querySelector('.guard');
+        if (!gatedText) return;
+
+        let unlocked = false;
+        const unlockAndType = () => {
+          if (unlocked) return;
+          unlocked = true;
+          if (guard) {
+            guard.style.opacity = '0';
+            guard.style.transform = 'translateY(-20px)';
+            setTimeout(() => guard.remove(), 400);
+          }
+          gatedText.style.opacity = '1';
+          gatedText.style.transform = 'none';
+          typeWriter(gatedText);
+        };
+
+        video.addEventListener('ended', unlockAndType);
+        video.addEventListener('timeupdate', () => {
+          if (!unlocked && video.currentTime >= video.duration - 0.4) unlockAndType();
+        });
+      });
+
+      // 6) To-top button
+      const toTopBtn = document.getElementById('toTop');
+      if (toTopBtn) {
+        window.addEventListener('scroll', () => {
+          toTopBtn.classList.toggle('show', window.scrollY > 500);
+        });
+        toTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      }
+
+      // 7) Улучшенная система загрузки медиа из корневого каталога
+      const mediaLoaders = {
+        attempts: {},
+        maxAttempts: 3,
+        delay: 1000,
+        
+        init() {
+          this.loadAllMedia();
+        },
+        
+        loadAllMedia() {
+          // Загружаем изображения
+          document.querySelectorAll('img.photo[data-src]').forEach(img => {
+            this.loadImage(img);
+          });
+          
+          // Загружаем видео
+          document.querySelectorAll('video.clip[data-src]').forEach(video => {
+            this.loadVideo(video);
+          });
+        },
+        
+        loadImage(img) {
+          const src = img.getAttribute('data-src');
+          const loadingId = img.closest('.media-container').querySelector('.media-loading').id;
+          
+          if (!this.attempts[src]) this.attempts[src] = 0;
+          
+          const attemptLoad = () => {
+            this.attempts[src]++;
+            
+            const tempImg = new Image();
+            tempImg.onload = () => {
+              img.src = src;
+              img.removeAttribute('data-src');
+              this.hideLoading(loadingId);
+            };
+            
+            tempImg.onerror = () => {
+              if (this.attempts[src] < this.maxAttempts) {
+                setTimeout(attemptLoad, this.delay * this.attempts[src]);
+              } else {
+                this.showFallback(loadingId, `Не удалось загрузить изображение`);
+              }
+            };
+            
+            tempImg.src = src;
+          };
+          
+          attemptLoad();
+        },
+        
+        loadVideo(video) {
+          const src = video.getAttribute('data-src');
+          const loadingId = video.closest('.media-container').querySelector('.media-loading').id;
+          
+          if (!this.attempts[src]) this.attempts[src] = 0;
+          
+          const attemptLoad = () => {
+            this.attempts[src]++;
+            
+            const source = document.createElement('source');
+            source.src = src;
+            source.type = 'video/mp4';
+            
+            const tempVideo = document.createElement('video');
+            tempVideo.appendChild(source);
+            tempVideo.preload = 'metadata';
+            
+            tempVideo.onloadeddata = () => {
+              const actualSource = document.createElement('source');
+              actualSource.src = src;
+              actualSource.type = 'video/mp4';
+              
+              video.innerHTML = '';
+              video.appendChild(actualSource);
+              video.removeAttribute('data-src');
+              video.load();
+              this.hideLoading(loadingId);
+            };
+            
+            tempVideo.onerror = () => {
+              if (this.attempts[src] < this.maxAttempts) {
+                setTimeout(attemptLoad, this.delay * this.attempts[src]);
+              } else {
+                this.showFallback(loadingId, `Не удалось загрузить видео`);
+              }
+            };
+            
+            tempVideo.load();
+          };
+          
+          attemptLoad();
+        },
+        
+        hideLoading(elementId) {
+          const loadingElement = document.getElementById(elementId);
+          if (loadingElement) {
+            loadingElement.style.display = 'none';
+          }
+        },
+        
+        showFallback(elementId, message) {
+          const loadingElement = document.getElementById(elementId);
+          if (loadingElement) {
+            loadingElement.innerHTML = `
+              <div class="media-fallback">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p>${message}</p>
+                <button onclick="window.mediaLoaders.retryMedia('${elementId}')" style="margin-top: 10px; padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer;">Повторить загрузку</button>
+              </div>
+            `;
+            loadingElement.style.position = 'relative';
+          }
+        },
+        
+        retryMedia(loadingId) {
+          const loadingElement = document.getElementById(loadingId);
+          const mediaContainer = loadingElement.closest('.media-container');
+          const img = mediaContainer.querySelector('img[data-src]');
+          const video = mediaContainer.querySelector('video[data-src]');
+          
+          loadingElement.innerHTML = '<div class="spinner"></div>';
+          loadingElement.style.display = 'flex';
+          
+          if (img) {
+            this.loadImage(img);
+          } else if (video) {
+            this.loadVideo(video);
+          }
+        }
+      };
+      
+      // Инициализируем загрузку медиа
+      window.mediaLoaders = mediaLoaders;
+      mediaLoaders.init();
+
+      // Автоматически скрываем индикаторы загрузки через 10 секунд на всякий случай
+      setTimeout(() => {
+        document.querySelectorAll('.media-loading').forEach(loading => {
+          if (loading.style.display !== 'none') {
+            loading.style.display = 'none';
+          }
+        });
+      }, 10000);
+
+    })();
+  </script>
+</body>
+
+</html>
